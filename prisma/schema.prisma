@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String   
+  email       String   @unique
+  password    String
+  type        ROLE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer?
+}
+
+
+model Customer {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  fullName    String
+  contact    String
+  address    String
+  status     Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order Order?
+  
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String     
+  description String     
+  price       Decimal  @db.Decimal(9,2)
+  stockQuantity Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  itemOrder ItemOrder?
+}
+
+model Order {
+  id            Int      @id @default(autoincrement())
+  customerId    Int      @unique  
+  customer      Customer @relation(fields: [customerId], references: [id]) 
+  description   String     
+  price         Decimal  @db.Decimal(9,2)
+  stockQuantity Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  itemOrder    ItemOrder?
+}
+
+model ItemOrder {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique  
+  order       Order    @relation(fields: [orderId], references: [id]) 
+  productId   Int      @unique  
+  product     Product  @relation(fields: [productId], references: [id]) 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SaleReport {
+  id          Int      @id @default(autoincrement())
+  time        DateTime     
+  total       Decimal  @db.Decimal(9,2)
+  products    Decimal  @db.Decimal(9,2) 
+  path        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+enum ROLE {
+ CUSTOMER
+ ADMIN
+}
