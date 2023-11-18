@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
@@ -34,6 +35,23 @@ export class CreateItemOrderDto {
     example: 1000,
     description: `Informe o total dos Itens`,
   })
+=======
+import { IsNotEmpty } from 'class-validator';
+
+export class CreateItemOrderDto {
+  readonly id: number;
+
+  readonly orderId: number;
+
+  readonly productId: number;
+
+  @IsNotEmpty()
+  readonly quantity: number;
+
+  @IsNotEmpty()
+  readonly price: number;
+
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   @IsNotEmpty()
   readonly subtotal: number;
 }

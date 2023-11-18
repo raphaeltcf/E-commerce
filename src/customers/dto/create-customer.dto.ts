@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches } from 'class-validator';
 
@@ -39,6 +40,24 @@ export class CreateCustomerDto {
     example: 'Ativo',
     description: `Informe o Status do  usuario`,
   })
+=======
+import { IsNotEmpty } from 'class-validator';
+
+export class CreateCustomerDto {
+  readonly id: number;
+
+  readonly userId: number;
+
+  @IsNotEmpty()
+  readonly fullName: string;
+
+  @IsNotEmpty()
+  readonly contact: string;
+
+  @IsNotEmpty()
+  readonly address: string;
+
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   @IsNotEmpty()
   readonly status: boolean;
 }

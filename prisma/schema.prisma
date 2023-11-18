@@ -11,7 +11,11 @@ datasource db {
 }
 
 model User {
+<<<<<<< HEAD
   id          String  @id @default(uuid())
+=======
+  id          Int      @id @default(autoincrement())
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   name        String   
   email       String   @unique
   password    String
@@ -23,6 +27,7 @@ model User {
 
 
 model Customer {
+<<<<<<< HEAD
   id          String  @id @default(uuid())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id])
@@ -30,6 +35,15 @@ model Customer {
   contact     String
   address     String
   status      Boolean
+=======
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  fullName    String
+  contact    String
+  address    String
+  status     Boolean
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   order Order?
@@ -37,7 +51,11 @@ model Customer {
 }
 
 model Product {
+<<<<<<< HEAD
   id          String  @id @default(uuid())
+=======
+  id          Int      @id @default(autoincrement())
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   name        String     
   description String     
   price       Decimal  @db.Decimal(9,2)
@@ -48,17 +66,27 @@ model Product {
 }
 
 model Order {
+<<<<<<< HEAD
   id            String   @id @default(uuid())
   customerId    String   @unique  
   customer      Customer @relation(fields: [customerId], references: [id]) 
   status        STATUS
   total         Decimal @db.Decimal(9,2)
+=======
+  id            Int      @id @default(autoincrement())
+  customerId    Int      @unique  
+  customer      Customer @relation(fields: [customerId], references: [id]) 
+  description   String     
+  price         Decimal  @db.Decimal(9,2)
+  stockQuantity Int
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   itemOrder    ItemOrder?
 }
 
 model ItemOrder {
+<<<<<<< HEAD
   id          String   @id @default(uuid())
   orderId     String   @unique  
   order       Order    @relation(fields: [orderId], references: [id]) 
@@ -67,12 +95,23 @@ model ItemOrder {
   quantity    Int
   price       Decimal @db.Decimal(9,2)
   subtotal    Decimal @db.Decimal(9,2)
+=======
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique  
+  order       Order    @relation(fields: [orderId], references: [id]) 
+  productId   Int      @unique  
+  product     Product  @relation(fields: [productId], references: [id]) 
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model SaleReport {
+<<<<<<< HEAD
   id          String   @id @default(uuid())
+=======
+  id          Int      @id @default(autoincrement())
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   time        DateTime     
   total       Decimal  @db.Decimal(9,2)
   products    Decimal  @db.Decimal(9,2) 
@@ -86,6 +125,7 @@ enum ROLE {
  CUSTOMER
  ADMIN
 }
+<<<<<<< HEAD
 
 enum STATUS {
  RECEBIDO 
@@ -93,3 +133,5 @@ enum STATUS {
  DESPACHADO
  ENTREGUE
 }
+=======
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e

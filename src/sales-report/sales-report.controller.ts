@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   Controller,
   Get,
@@ -19,17 +20,34 @@ export class SalesReportController {
 
   @Post('')
   @Roles(ROLE.ADMIN)
+=======
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { SalesReportService } from './sales-report.service';
+import { CreateSalesReportDto } from './dto/create-sales-report.dto';
+import { UpdateSalesReportDto } from './dto/update-sales-report.dto';
+
+@Controller('sales-report')
+export class SalesReportController {
+  constructor(private readonly salesReportService: SalesReportService) {}
+
+  @Post()
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   create(@Body() createSalesReportDto: CreateSalesReportDto) {
     return this.salesReportService.create(createSalesReportDto);
   }
 
+<<<<<<< HEAD
   @Get('')
   @Roles(ROLE.ADMIN)
+=======
+  @Get()
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   findAll() {
     return this.salesReportService.findAll();
   }
 
   @Get(':id')
+<<<<<<< HEAD
   @Roles(ROLE.ADMIN)
   findOne(@Param('id') id: string) {
     return this.salesReportService.findOne(id);
@@ -48,5 +66,19 @@ export class SalesReportController {
   @Roles(ROLE.ADMIN)
   remove(@Param('id') id: string) {
     return this.salesReportService.remove(id);
+=======
+  findOne(@Param('id') id: string) {
+    return this.salesReportService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateSalesReportDto: UpdateSalesReportDto) {
+    return this.salesReportService.update(+id, updateSalesReportDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.salesReportService.remove(+id);
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
   }
 }

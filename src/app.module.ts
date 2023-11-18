@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+<<<<<<< HEAD
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -36,5 +37,15 @@ import { EmailModule } from './email/email.module';
       useClass: RolesGuard,
     },
   ],
+=======
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+
+@Module({
+  imports: [UsersModule],
+  controllers: [AppController],
+  providers: [AppService],
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
 })
 export class AppModule {}

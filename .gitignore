@@ -5,7 +5,11 @@
 
 .env 
 package-lock.json
+<<<<<<< HEAD
 
+=======
+.eslintrc.js
+>>>>>>> 57d835d8f37bf6c530068adf542e557f9950ed6e
 
 # Logs
 logs
