@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "ItemOrder" ALTER COLUMN "price" SET DEFAULT 0.0,
+ALTER COLUMN "quantity" SET DEFAULT 1,
+ALTER COLUMN "subtotal" SET DEFAULT 0.0;

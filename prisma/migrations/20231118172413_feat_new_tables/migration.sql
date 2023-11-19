@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "STATUS" ADD VALUE 'AGUARDANDO';
+
+-- AlterTable
+ALTER TABLE "Order" ALTER COLUMN "total" SET DEFAULT 0.0;
