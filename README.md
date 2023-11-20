@@ -9,10 +9,8 @@ Tabelas de conteúdo
  3. [Pondo o E-commece para funcionar:](#funcionando)
  4. [(Login)]
  5. [(Register)]
- 6. [(Compra)]
- 7. [(Carrinho)]
- 4. [Features](#features)
- 5. [Feito Utilizando](#built)
+ 6. [Features](#features)
+ 7. [Feito Utilizando](#built)
 
 *******
 <div id='experimente'/>  
@@ -110,6 +108,7 @@ $ npm start
 - [x] Integração com serviço de envio de e-mail
 - [x] Calculando os preços
 - [x] Atualização de estoque
+- [x] Integrado com plataforma de pagamento simulada
 - [X] Swagger
 - [X] Permissionamento
 - [X] Autenticação
