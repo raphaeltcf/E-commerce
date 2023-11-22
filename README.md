@@ -7,10 +7,8 @@ Tabelas de conteúdo
  1. [Experimente](#experimente)
  2. [Pré requisitos](#prerequisitos)
  3. [Pondo o E-commece para funcionar:](#funcionando)
- 4. [(Login)]
- 5. [(Register)]
- 6. [Features](#features)
- 7. [Feito Utilizando](#built)
+ 4. [Features](#features)
+ 5. [Feito Utilizando](#built)
 
 *******
 <div id='experimente'/>  
@@ -56,6 +54,9 @@ $ cd E-commerce
 
 # Instale as dependencias
 npm i
+
+# Faça as migrações do banco 
+npx prisma migrate dev --name "init"
 
 # Para funcionar:
 $ npm start dev
