@@ -15,7 +15,7 @@ Tabelas de conteúdo
 
 ## 👾 Experimente 
 
-Você pode Experimentar clianco aqui no [E-commerce]().
+Você pode Experimentar clianco aqui no [E-commerce](http://ec2-18-231-189-45.sa-east-1.compute.amazonaws.com:3333/api).
 
 *******
 <div id='prerequisitos'/>  
