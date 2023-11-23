@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ROLE {
+ CUSTOMER
+ ADMIN
+}
+
+enum STATUS {
+ RECEBIDO 
+ PREPARO
+ DESPACHADO
+ ENTREGUE
+}
+
+model User {
+  id          String  @id @default(uuid())
+  name        String   
+  email       String   @unique
+  password    String
+  type        ROLE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer?
+}
+
+
+model Customer {
+  id          String  @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  fullName    String
+  contact     String
+  address     String
+  status      Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order Order[]
+  
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  name        String     
+  description String     
+  category    String     
+  price       Decimal  @db.Decimal(9,2)
+  stockQuantity Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  itemOrder ItemOrder[]
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  customerId    String    
+  customer      Customer @relation(fields: [customerId], references: [id]) 
+  status        STATUS   @default(RECEBIDO)
+  total         Decimal  @db.Decimal(9,2) @default(0.0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  itemOrder    ItemOrder[]
+  transactions Transactions?
+}
+
+model ItemOrder {
+  id          String   @id @default(uuid())
+  orderId     String     
+  order       Order    @relation(fields: [orderId], references: [id]) 
+  productId   String     
+  product     Product  @relation(fields: [productId], references: [id]) 
+  quantity    Int     @default(1)
+  price       Decimal @db.Decimal(9,2) @default(0.0)
+  subtotal    Decimal @db.Decimal(9,2) @default(0.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SaleReport {
+  id          String   @id @default(uuid())
+  period        Json     
+  total       Decimal  @db.Decimal(9,2) 
+  products    Decimal  @db.Decimal(9,2) 
+  path        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Transactions {
+  id           String   @id @default(uuid())
+  orderId      String   @unique 
+  order        Order    @relation(fields: [orderId], references: [id]) 
+  customerName String       
+  cardType     String           
+  expiryMonth  Int     
+  expiryYear   Int    
+  cvv          Int
+  amount       Decimal @db.Decimal(9,2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
+
