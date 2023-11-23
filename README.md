@@ -110,6 +110,7 @@ $ npm start
 - [x] Calculando os preços
 - [x] Atualização de estoque
 - [x] Integrado com plataforma de pagamento simulada
+- [x] Integrado com AWS S3
 - [X] Swagger
 - [X] Permissionamento
 - [X] Autenticação
