@@ -29,7 +29,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   async create(@Body() createUserDto: CreateUserDto) {
-    await this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto);
   }
 
   @Get('')
