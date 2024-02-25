@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto } from './interfaces/dto/create-order.dto';
 import { CustomersService } from 'src/modules/customers/customers.service';
 import { UsersService } from 'src/modules/users/users.service';
 import { EmailService } from 'src/modules/email/email.service';
+import { OrderRepository } from './order.repository';
+import { CustomersRepository } from '../customers/customers.repository';
+import { UsersRepository } from '../users/users.repository';
 
 describe('Order (e2e)', () => {
   let app: INestApplication;
@@ -13,7 +16,7 @@ describe('Order (e2e)', () => {
   let data: CreateOrderDto;
   let sendMailMock;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     sendMailMock = jest
       .fn()
       .mockImplementation(() => console.log('email sent'));
@@ -22,8 +25,11 @@ describe('Order (e2e)', () => {
       providers: [
         PrismaService,
         OrderService,
+        OrderRepository,
         CustomersService,
+        CustomersRepository,
         UsersService,
+        UsersRepository,
         EmailService,
       ],
     })
@@ -37,7 +43,7 @@ describe('Order (e2e)', () => {
     orderService = moduleFixture.get<OrderService>(OrderService);
   });
 
-  it('Create order with non-existent customer id (e2e)', async () => {
+  it('Create order with non-existent customer id', async () => {
     data = {
       customerId: '123',
     };

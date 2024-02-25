@@ -3,41 +3,27 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { FilterProductsDTO } from './dto/filter-products.dto';
+import { CreateProductDto } from './interfaces/dto/create-product.dto';
+import { UpdateProductDto } from './interfaces/dto/update-product.dto';
+import { FilterProductsDTO } from './interfaces/dto/filter-products.dto';
+import { ProductRepository } from './product.repository';
 import { Prisma } from '@prisma/client';
+import { IProduct } from './interfaces/product.interface';
 
 @Injectable()
 export class ProductService {
-  constructor(private prisma: PrismaService) {}
-
-  create(createProductDto: CreateProductDto) {
-    return this.prisma.product.create({ data: createProductDto });
+  constructor(private readonly productRepository: ProductRepository) {}
+  create(data: CreateProductDto): Promise<IProduct> {
+    return this.productRepository.create(data);
   }
 
-  findAll(filters: FilterProductsDTO) {
-    return this.prisma.product.findMany({
-      where: {
-        name: { contains: filters.name, mode: 'insensitive' } || undefined,
-        price: {
-          gte: Number(filters.minPrice) || undefined,
-          lte: Number(filters.maxPrice) || undefined,
-        },
-        stockQuantity: {
-          gte: Number(filters.minStockQuantity) || undefined,
-          lte: Number(filters.maxStockQuantity) || undefined,
-        },
-        category:
-          { contains: filters.category, mode: 'insensitive' } || undefined,
-      },
-    });
+  findAll(filters: FilterProductsDTO): Promise<IProduct[]> {
+    return this.productRepository.findAll(filters);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<IProduct> {
     try {
-      const product = await this.prisma.product.findUnique({ where: { id } });
+      const product = await this.productRepository.findOne(id);
 
       if (!product) {
         throw new NotFoundException(`Product with ID ${id} not found`);
@@ -53,18 +39,13 @@ export class ProductService {
     }
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, data: UpdateProductDto): Promise<IProduct> {
     try {
-      const existingProduct = await this.prisma.product.findUnique({
-        where: { id },
-      });
+      const existingProduct = await this.productRepository.findOne(id);
       if (!existingProduct) {
         throw new NotFoundException(`Customer with ID ${id} not found`);
       }
-      return this.prisma.product.update({
-        where: { id },
-        data: updateProductDto,
-      });
+      return await this.productRepository.update(id, data);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -74,15 +55,15 @@ export class ProductService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<{ message: string }> {
     try {
-      const product = await this.prisma.product.findUnique({ where: { id } });
+      const product = await this.productRepository.findOne(id);
 
       if (!product) {
         throw new NotFoundException(`Product with ID ${id} not found`);
       }
 
-      await this.prisma.product.delete({ where: { id } });
+      await this.productRepository.remove(id);
 
       return { message: 'Product deleted successfully' };
     } catch (error) {

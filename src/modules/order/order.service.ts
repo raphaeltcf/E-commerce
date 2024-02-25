@@ -3,31 +3,29 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { FilterOrderDTO } from './dto/filter-order.dto';
-import { UpdateStatusDto } from './dto/update-status.dto';
+import { CreateOrderDto } from './interfaces/dto/create-order.dto';
+import { UpdateOrderDto } from './interfaces/dto/update-order.dto';
+import { FilterOrderDTO } from './interfaces/dto/filter-order.dto';
+import { UpdateStatusDto } from './interfaces/dto/update-status.dto';
 import { CustomersService } from 'src/modules/customers/customers.service';
 import { UsersService } from 'src/modules/users/users.service';
 import { EmailService } from 'src/modules/email/email.service';
-import { Prisma, STATUS } from '@prisma/client';
-import {
-  orderDelivered,
-  orderShipped,
-  preparedOrder,
-} from 'src/modules/email/templates';
+import { OrderRepository } from './order.repository';
+import { Prisma } from '@prisma/client';
+
+import { getMessageByStatus } from 'src/core/utils/get-message';
+import { IOrder } from './interfaces/order.interface';
 
 @Injectable()
 export class OrderService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly customerService: CustomersService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
+    private readonly orderRepository: OrderRepository,
   ) {}
 
-  async create(data: CreateOrderDto) {
+  async create(data: CreateOrderDto): Promise<IOrder> {
     try {
       const customerService = await this.customerService.findOne(
         data.customerId,
@@ -39,7 +37,7 @@ export class OrderService {
         );
       }
 
-      return await this.prisma.order.create({ data });
+      return await this.orderRepository.create(data);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -49,26 +47,9 @@ export class OrderService {
     }
   }
 
-  findAll(filters: FilterOrderDTO) {
+  async findAll(filters: FilterOrderDTO): Promise<IOrder[]> {
     try {
-      return this.prisma.order.findMany({
-        where: {
-          status: filters.status || undefined,
-          total: {
-            gte: Number(filters.minPrice) || undefined,
-            lte: Number(filters.maxPrice) || undefined,
-          },
-          createdAt: {
-            gte:
-              (filters.minDate && this.convertToISODate(filters.minDate)) ||
-              undefined,
-            lte:
-              (filters.maxDate &&
-                this.convertToISODate(filters.maxDate, true)) ||
-              undefined,
-          },
-        },
-      });
+      return await this.orderRepository.findAll(filters);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -78,12 +59,9 @@ export class OrderService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<IOrder> {
     try {
-      const order = await this.prisma.order.findUnique({
-        where: { id },
-        include: { itemOrder: true },
-      });
+      const order = await this.orderRepository.findOne(id);
 
       if (!order) {
         throw new NotFoundException(`Order with ID ${id} not found`);
@@ -99,18 +77,13 @@ export class OrderService {
     }
   }
 
-  async update(id: string, data: UpdateOrderDto) {
+  async update(id: string, data: UpdateOrderDto): Promise<IOrder> {
     try {
-      const existingOrder = await this.prisma.order.findUnique({
-        where: { id },
-      });
+      const existingOrder = await this.orderRepository.findOne(id);
       if (!existingOrder) {
         throw new NotFoundException(`Order with ID ${id} not found`);
       }
-      return this.prisma.order.update({
-        where: { id },
-        data,
-      });
+      return this.orderRepository.update(id, data);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -120,15 +93,11 @@ export class OrderService {
     }
   }
 
-  async updateStatus(id: string, data: UpdateStatusDto) {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-    });
+  async updateStatus(id: string, data: UpdateStatusDto): Promise<IOrder> {
+    const order = await this.orderRepository.findOne(id);
 
     try {
-      const existingOrder = await this.prisma.order.findUnique({
-        where: { id },
-      });
+      const existingOrder = await this.orderRepository.findOne(id);
       if (!existingOrder) {
         throw new NotFoundException(`Order with ID ${id} not found`);
       }
@@ -136,10 +105,7 @@ export class OrderService {
       const customer = await this.customerService.findOne(order.customerId);
       const user = await this.usersService.findOne(customer.userId);
 
-      const orderResult = await this.prisma.order.update({
-        where: { id },
-        data,
-      });
+      const orderResult = await this.orderRepository.update(id, data);
 
       await this.emailService.sendMail({
         email: user.email,
@@ -157,22 +123,35 @@ export class OrderService {
     }
   }
 
-  updateTotal(id: string, price: number) {
-    return this.prisma.order.update({
-      where: { id },
-      data: { total: { increment: price } },
-    });
+  async updateTotal(id: string, price: number): Promise<IOrder> {
+    try {
+      const existingUpdateTotal = await this.orderRepository.findOne(id);
+
+      if (!existingUpdateTotal) {
+        throw new NotFoundException(`Order with ID ${id} not found`);
+      }
+
+      return await this.orderRepository.updateTotal(id, price);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(`Error updating Order`);
+      }
+    }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<{
+    message: string;
+  }> {
     try {
-      const order = await this.prisma.order.findUnique({ where: { id } });
+      const order = await this.orderRepository.findOne(id);
 
       if (!order) {
         throw new NotFoundException(`Order with ID ${id} not found`);
       }
 
-      await this.prisma.order.delete({ where: { id } });
+      await this.orderRepository.remove(id);
 
       return { message: 'Order deleted successfully' };
     } catch (error) {
@@ -183,33 +162,4 @@ export class OrderService {
       }
     }
   }
-  private convertToISODate(
-    dateString: string,
-    endOfDay: boolean = false,
-  ): string {
-    const [day, month, year] = dateString.split('/');
-    const isoDate = new Date(
-      `${year}-${month}-${day}${endOfDay ? 'T23:59:59' : ''}`,
-    ).toISOString();
-    return isoDate;
-  }
 }
-
-const getMessageByStatus = (
-  status: STATUS,
-  userName: string,
-  orderId: string,
-) => {
-  switch (status) {
-    case 'RECEBIDO':
-      return 'Pedido recebido com sucesso.';
-    case 'PREPARO':
-      return preparedOrder(userName, orderId);
-    case 'DESPACHADO':
-      return orderShipped(userName);
-    case 'ENTREGUE':
-      return orderDelivered(userName);
-    default:
-      return 'Status desconhecido.';
-  }
-};

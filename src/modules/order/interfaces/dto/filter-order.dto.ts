@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { STATUS } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, Matches } from 'class-validator';
+import { IsEnum, IsOptional, Matches } from 'class-validator';
 
 export class FilterOrderDTO {
   @ApiProperty({
@@ -18,8 +18,7 @@ export class FilterOrderDTO {
     required: false,
   })
   @IsOptional()
-  @IsNumber()
-  maxPrice?: number;
+  maxPrice?: string;
 
   @ApiProperty({
     example: '10',
@@ -27,8 +26,7 @@ export class FilterOrderDTO {
     required: false,
   })
   @IsOptional()
-  @IsNumber()
-  minPrice?: number;
+  minPrice?: string;
 
   @ApiProperty({
     example: '10/10/2010',

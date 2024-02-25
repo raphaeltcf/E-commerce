@@ -4,21 +4,22 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { FilterCustomersDTO } from './dto/filter-customer.dto';
+import { CreateCustomerDto } from './interfaces/dto/create-customer.dto';
+import { UpdateCustomerDto } from './interfaces/dto/update-customer.dto';
+import { FilterCustomersDTO } from './interfaces/dto/filter-customer.dto';
 import { UsersService } from 'src/modules/users/users.service';
 import { Prisma } from '@prisma/client';
+import { CustomersRepository } from './customers.repository';
+import { ICustomer } from './interfaces/customer.interface';
 
 @Injectable()
 export class CustomersService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly customersRepository: CustomersRepository,
   ) {}
 
-  async create(data: CreateCustomerDto) {
+  async create(data: CreateCustomerDto): Promise<ICustomer> {
     try {
       const userExists = await this.usersService.findOne(data.userId);
 
@@ -26,7 +27,7 @@ export class CustomersService {
         throw new NotFoundException('User not found');
       }
 
-      return this.prisma.customer.create({ data });
+      return this.customersRepository.create(data);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException({
@@ -41,29 +42,58 @@ export class CustomersService {
     }
   }
 
-  findAll(filters: FilterCustomersDTO) {
-    return this.prisma.customer.findMany({
-      where: {
-        fullName: { contains: filters.name, mode: 'insensitive' } || undefined,
-        status: Boolean(filters.active) || undefined,
-      },
-    });
+  async findAll(filters: FilterCustomersDTO): Promise<ICustomer[]> {
+    return await this.customersRepository.findAll(filters);
   }
 
-  findOne(id: string) {
-    return this.prisma.customer.findUnique({ where: { id } });
-  }
-
-  findCustomerProfile(userId: string) {
-    return this.prisma.customer.findUnique({ where: { userId } });
-  }
-
-  async updateCustomer(userId: string, data: UpdateCustomerDto) {
+  async findOne(id: string): Promise<ICustomer> {
     try {
-      const updatedCustomer = await this.prisma.customer.update({
-        where: { userId },
+      const customer = await this.customersRepository.findOneById(id);
+
+      if (!customer) {
+        throw new NotFoundException(`Customer with ID ${id} not found`);
+      }
+
+      return customer;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(`Error with customer`);
+      }
+    }
+  }
+
+  async findCustomerProfile(userId: string): Promise<ICustomer> {
+    try {
+      const customerProfile =
+        await this.customersRepository.findOneByUserId(userId);
+
+      if (!customerProfile) {
+        throw new NotFoundException(
+          `customer Profile with ID ${userId} not found`,
+        );
+      }
+
+      return customerProfile;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(`Error with Order`);
+      }
+    }
+  }
+
+  async updateCustomer(
+    userId: string,
+    data: UpdateCustomerDto,
+  ): Promise<ICustomer> {
+    try {
+      const updatedCustomer = await this.customersRepository.updateByUserId(
+        userId,
         data,
-      });
+      );
 
       return updatedCustomer;
     } catch (error) {
@@ -71,20 +101,15 @@ export class CustomersService {
     }
   }
 
-  async update(id: string, data: UpdateCustomerDto) {
+  async update(id: string, data: UpdateCustomerDto): Promise<ICustomer> {
     try {
-      const existingCustomer = await this.prisma.customer.findUnique({
-        where: { id },
-      });
+      const existingCustomer = await this.customersRepository.findOneById(id);
 
       if (!existingCustomer) {
         throw new NotFoundException(`Customer with ID ${id} not found`);
       }
 
-      const updatedCustomer = await this.prisma.customer.update({
-        where: { id },
-        data,
-      });
+      const updatedCustomer = await this.customersRepository.update(id, data);
 
       return updatedCustomer;
     } catch (error) {
@@ -96,17 +121,17 @@ export class CustomersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<{
+    message: string;
+  }> {
     try {
-      const customer = await this.prisma.customer.findUnique({
-        where: { id },
-      });
+      const customer = await this.customersRepository.findOneById(id);
 
       if (!customer) {
         throw new NotFoundException(`Customer with ID ${id} not found`);
       }
 
-      await this.prisma.customer.delete({ where: { id } });
+      await this.customersRepository.remove(id);
       await this.usersService.delete(customer.userId);
 
       return { message: 'Customer deleted successfully' };

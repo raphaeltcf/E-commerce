@@ -8,10 +8,11 @@ import {
   Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { Prisma, ROLE } from '@prisma/client';
-import { Roles } from 'src/roles/decorators/roles.decorator';
+import { CreateUserDto } from './interfaces/dto/create-user.dto';
+import { ROLE } from '@prisma/client';
+import { Roles } from 'src/core/decorators/roles.decorator';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UpdateUserDto } from './interfaces/dto/update-user.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth('token')
@@ -27,32 +28,27 @@ export class UsersController {
     description: 'The record has been successfully created.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  create(@Body() createUserDto: CreateUserDto) {
-    this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    await this.usersService.create(createUserDto);
   }
 
   @Get('')
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  @Get('find/:email')
-  findByEmail(@Param('email') email: string) {
-    return this.usersService.findByEmail(email);
+  async findOne(@Param('id') id: string) {
+    return await this.usersService.findOne(id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() user: Prisma.UserCreateInput) {
-    return this.usersService.update(id, user);
+  async update(@Param('id') id: string, @Body() data: UpdateUserDto) {
+    return await this.usersService.update(id, data);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.delete(id);
+  async remove(@Param('id') id: string) {
+    return await this.usersService.delete(id);
   }
 }

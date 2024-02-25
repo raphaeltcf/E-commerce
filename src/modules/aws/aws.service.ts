@@ -26,4 +26,19 @@ export class AwsService {
       console.log(error);
     }
   }
+
+  async deleteFileByKey(key: string) {
+    try {
+      const deleteResult = await this.s3
+        .deleteObject({
+          Bucket: this.bucketName,
+          Key: key,
+        })
+        .promise();
+
+      return deleteResult;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

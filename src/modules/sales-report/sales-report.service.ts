@@ -3,27 +3,29 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateSalesReportDto } from './dto/update-sales-report.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateSalesReportDto } from './interfaces/dto/update-sales-report.dto';
+
 import * as fs from 'fs';
-import * as fastCsv from 'fast-csv';
 import { Prisma } from '@prisma/client';
-import { FilterSalesReportDto } from './dto/filter-sales-report.dto';
+import { FilterSalesReportDto } from './interfaces/dto/filter-sales-report.dto';
 import { TransactionsService } from 'src/modules/transactions/transactions.service';
 import { ItemOrderService } from 'src/modules/item-order/item-order.service';
 import { AwsService } from 'src/modules/aws/aws.service';
 import { v4 as uuidv4 } from 'uuid';
+import { SalesReportRepository } from './sales-report.repository';
+import { ISalesReport } from './interfaces/sales-report.interface';
+import { writeToCsv } from 'src/core/utils/write-to-csv';
 
 @Injectable()
 export class SalesReportService {
   constructor(
-    private prisma: PrismaService,
+    private salesReportRepository: SalesReportRepository,
     private transactionsService: TransactionsService,
     private itemOrderService: ItemOrderService,
     private awsService: AwsService,
   ) {}
 
-  async create(data: FilterSalesReportDto) {
+  async create(data: FilterSalesReportDto): Promise<ISalesReport> {
     const allData = [];
 
     try {
@@ -55,7 +57,7 @@ export class SalesReportService {
         });
       }
 
-      await this.writeToCsv(allData, 'output.csv');
+      await writeToCsv(allData, 'output.csv');
 
       const fileContent = fs.readFileSync('output.csv');
       const uuid = uuidv4();
@@ -65,13 +67,11 @@ export class SalesReportService {
         `${uuid}.csv`,
       );
 
-      return this.prisma.saleReport.create({
-        data: {
-          path: aws.Location,
-          total: totalPrice,
-          products: totalProducts,
-          period: { minDate: data.minDate, maxDate: data.maxDate },
-        },
+      return await this.salesReportRepository.create({
+        path: aws.Location,
+        total: totalPrice,
+        products: totalProducts,
+        period: { minDate: data.minDate, maxDate: data.maxDate },
       });
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -82,30 +82,58 @@ export class SalesReportService {
     }
   }
 
-  findAll() {
-    return this.prisma.saleReport.findMany();
+  async findAll(): Promise<ISalesReport[]> {
+    return await this.salesReportRepository.findAll();
   }
 
-  findOne(id: string) {
-    return this.prisma.saleReport.findUnique({ where: { id } });
-  }
-
-  update(id: string, updateSalesReportDto: UpdateSalesReportDto) {
-    return this.prisma.saleReport.update({
-      where: { id },
-      data: updateSalesReportDto,
-    });
-  }
-
-  async remove(id: string) {
+  async findOne(id: string): Promise<ISalesReport> {
     try {
-      const sale = await this.prisma.saleReport.findUnique({ where: { id } });
+      const salesReport = await this.salesReportRepository.findOneById(id);
+
+      if (!salesReport) {
+        throw new NotFoundException(`Sales-report with ID ${id} not found`);
+      }
+
+      return salesReport;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(`Error with Sales-report`);
+      }
+    }
+  }
+
+  async update(
+    id: string,
+    updateSalesReportDto: UpdateSalesReportDto,
+  ): Promise<ISalesReport> {
+    try {
+      const salesReport = await this.salesReportRepository.findOneById(id);
+
+      if (!salesReport) {
+        throw new NotFoundException(`Sales-Report with ID ${id} not found`);
+      }
+
+      return await this.salesReportRepository.update(id, updateSalesReportDto);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(`Error with Sales-Report`);
+      }
+    }
+  }
+
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const sale = await this.salesReportRepository.findOneById(id);
 
       if (!sale) {
         throw new NotFoundException(`Sale with ID ${id} not found`);
       }
 
-      await this.prisma.saleReport.delete({ where: { id } });
+      await this.salesReportRepository.remove(id);
 
       return { message: 'Sale deleted successfully' };
     } catch (error) {
@@ -115,17 +143,5 @@ export class SalesReportService {
         throw new InternalServerErrorException(`Error deleting sale`);
       }
     }
-  }
-
-  async writeToCsv(data: any[], filename: string): Promise<void> {
-    const ws = fs.createWriteStream(filename);
-
-    return new Promise((resolve, reject) => {
-      fastCsv
-        .write(data, { headers: true })
-        .pipe(ws)
-        .on('finish', () => resolve())
-        .on('error', (error) => reject(error));
-    });
   }
 }

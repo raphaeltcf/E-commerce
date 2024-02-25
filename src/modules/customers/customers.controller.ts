@@ -10,14 +10,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { CreateCustomerUserDto } from './dto/create-customer-user.dto';
+import { UpdateCustomerDto } from './interfaces/dto/update-customer.dto';
+import { CreateCustomerUserDto } from './interfaces/dto/create-customer-user.dto';
 import { UsersService } from 'src/modules/users/users.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Roles } from 'src/roles/decorators/roles.decorator';
+import { Roles } from 'src/core/decorators/roles.decorator';
 import { ROLE } from '@prisma/client';
-import { FilterCustomersDTO } from './dto/filter-customer.dto';
-import { IsPublic } from 'src/modules/auth/decorators/public.decorator';
+import { FilterCustomersDTO } from './interfaces/dto/filter-customer.dto';
+import { IsPublic } from 'src/core/decorators/public.decorator';
 
 @ApiTags('Customers')
 @ApiBearerAuth('token')
@@ -50,49 +50,51 @@ export class CustomersController {
     }
   }
 
-  // Routes for Customer
   @Roles(ROLE.CUSTOMER)
   @Get('profile')
-  findCustomerProfile(@Request() req) {
+  async findCustomerProfile(@Request() req) {
     const userId = req.user.id;
-    return this.customersService.findCustomerProfile(userId);
+    return await this.customersService.findCustomerProfile(userId);
   }
 
   @Roles(ROLE.CUSTOMER)
   @Patch('update')
-  updateByAccountId(
+  async updateByAccountId(
     @Request() req,
     @Body() updateCustomerDto: UpdateCustomerDto,
   ) {
     const userId = req.user.id;
-    return this.customersService.updateCustomer(userId, updateCustomerDto);
+    return await this.customersService.updateCustomer(
+      userId,
+      updateCustomerDto,
+    );
   }
 
   // Routes for ADMIN
   @Get('')
   @Roles(ROLE.ADMIN)
-  findAll(@Query() filters: FilterCustomersDTO) {
-    return this.customersService.findAll(filters);
+  async findAll(@Query() filters: FilterCustomersDTO) {
+    return await this.customersService.findAll(filters);
   }
 
   @Get(':id')
   @Roles(ROLE.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.customersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.customersService.findOne(id);
   }
 
   @Patch(':id')
   @Roles(ROLE.ADMIN)
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
   ) {
-    return this.customersService.update(id, updateCustomerDto);
+    return await this.customersService.update(id, updateCustomerDto);
   }
 
   @Delete(':id')
   @Roles(ROLE.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.customersService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.customersService.remove(id);
   }
 }

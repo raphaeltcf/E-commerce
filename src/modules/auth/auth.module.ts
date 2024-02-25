@@ -5,7 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { LoginValidationMiddleware } from './middlewares/login-validation.middleware';
+import { LoginValidationMiddleware } from '../../core/middlewares/login-validation.middleware';
 import { UsersModule } from 'src/modules/users/users.module';
 
 @Module({

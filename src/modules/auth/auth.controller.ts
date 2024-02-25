@@ -8,9 +8,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalAuthGuard } from '../../core/guards/local-auth.guard';
 import { AuthRequest } from './models/AuthRequest';
-import { IsPublic } from './decorators/public.decorator';
+import { IsPublic } from '../../core/decorators/public.decorator';
 import { LoginDto } from './dto/login.dto';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -24,7 +24,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async login(@Request() req: AuthRequest, @Body() data: LoginDto) {
-    return await this.authService.login(req.user);
+  login(@Request() req: AuthRequest, @Body() data: LoginDto) {
+    return this.authService.login(req.user);
   }
 }

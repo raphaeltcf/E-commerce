@@ -10,13 +10,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { SalesReportService } from './sales-report.service';
-import { UpdateSalesReportDto } from './dto/update-sales-report.dto';
-import { Roles } from 'src/roles/decorators/roles.decorator';
+import { UpdateSalesReportDto } from './interfaces/dto/update-sales-report.dto';
+import { Roles } from 'src/core/decorators/roles.decorator';
 import { ROLE } from '@prisma/client';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import * as fs from 'fs';
-import { FilterSalesReportDto } from './dto/filter-sales-report.dto';
+import { FilterSalesReportDto } from './interfaces/dto/filter-sales-report.dto';
 
 @ApiTags('Sales Report')
 @Controller('/sales-report')
@@ -50,28 +50,28 @@ export class SalesReportController {
 
   @Get('')
   @Roles(ROLE.ADMIN)
-  findAll() {
-    return this.salesReportService.findAll();
+  async findAll() {
+    return await this.salesReportService.findAll();
   }
 
   @Get(':id')
   @Roles(ROLE.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.salesReportService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.salesReportService.findOne(id);
   }
 
   @Patch(':id')
   @Roles(ROLE.ADMIN)
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateSalesReportDto: UpdateSalesReportDto,
   ) {
-    return this.salesReportService.update(id, updateSalesReportDto);
+    return await this.salesReportService.update(id, updateSalesReportDto);
   }
 
   @Delete(':id')
   @Roles(ROLE.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.salesReportService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.salesReportService.remove(id);
   }
 }
