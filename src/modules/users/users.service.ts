@@ -73,7 +73,17 @@ export class UsersService {
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
-      return this.usersRepository.update(id, data);
+
+      let userData = { ...data };
+
+      if (data.password) {
+        userData = {
+          ...userData,
+          password: await bcrypt.hash(data.password, 10),
+        };
+      }
+
+      return this.usersRepository.update(id, userData);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

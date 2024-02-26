@@ -14,6 +14,7 @@ export class UsersRepository {
     try {
       const createdUser = await this.prisma.user.create({
         data,
+        select: prismaExclude('User', ['password']),
       });
 
       return createdUser;
@@ -62,6 +63,7 @@ export class UsersRepository {
       return await this.prisma.user.update({
         where: { id },
         data,
+        select: prismaExclude('User', ['password']),
       });
     } catch (error) {
       throw error;
@@ -74,6 +76,7 @@ export class UsersRepository {
         where: {
           id,
         },
+        select: prismaExclude('User', ['password']),
       });
     } catch (error) {
       throw error;
