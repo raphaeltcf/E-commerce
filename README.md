@@ -15,7 +15,7 @@ Tabelas de conteúdo
 
 ## 👾 Experimente 
 
-Você pode Experimentar clianco aqui no [E-commerce](http://loomi-store.eastus.cloudapp.azure.com:3333/api).
+Você pode Experimentar clianco aqui no [E-commerce](http://loomi.eastus.cloudapp.azure.com:3333/api).
 
 *******
 <div id='prerequisitos'/>  
